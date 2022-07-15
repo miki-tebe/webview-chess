@@ -26,24 +26,28 @@ export default function Home() {
     const socket = io.connect(getBaseUrl(), {
       path: "/api/socketio",
     });
-
+    
     // log socket connection
     socket.on("connect", () => {
       console.log("SOCKET CONNECTED!", socket.id);
       setConnected(true);
     });
 
+    // log socket disconnection
+    socket.on("disconnect", () => {
+      console.log("SOCKET DISCONNECTED!");
+      setConnected(false);
+    });
+
     // update chat on new message dispatched
     socket.on("message", (message) => {
-      if (message.fen !== fen) {
-        setFen(message);
-      }
+      setFen(message);
       console.log("SOCKET MESSAGE", message);
     });
 
     // socket disconnect onUnmount if exists
     if (socket) return () => socket.disconnect();
-  }, [fen]);
+  }, []);
 
   function safeGameMutate(modify) {
     setGame((g) => {
@@ -60,11 +64,9 @@ export default function Home() {
       to: targetSquare,
       promotion: "q", // always promote to a queen for example simplicity
     });
-    setGame(gameCopy);
 
     // dispatch message to other users
     const message = gameCopy.fen();
-    // setFen(game.fen());
 
     const resp = await fetch("/api/chat", {
       method: "POST",
@@ -74,6 +76,7 @@ export default function Home() {
       body: JSON.stringify(message),
     });
 
+    setGame(gameCopy);
     return move;
   }
 
