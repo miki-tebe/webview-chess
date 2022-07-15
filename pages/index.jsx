@@ -6,14 +6,16 @@ import io from "socket.io-client";
 export default function Home() {
   const chessboardRef = useRef();
   const [game, setGame] = useState(new Chess());
-  const [fen, setFen] = useState('start');
+  const [fen, setFen] = useState("start");
 
   // connected flag
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     // connect to socket server
-    const socket = io.connect(process.env.BASE_URL, { path: "/api/socketio" });
+    const socket = io.connect(process.env.VERCEL_URL || process.env.BASE_URL, {
+      path: "/api/socketio",
+    });
 
     // log socket connection
     socket.on("connect", () => {
