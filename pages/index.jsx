@@ -3,6 +3,16 @@ import React, { useEffect, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import io from "socket.io-client";
 
+export const getBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    return "";
+  }
+  if (process.browser) return ""; // Browser should use current path
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
+
+  return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
+};
+
 export default function Home() {
   const chessboardRef = useRef();
   const [game, setGame] = useState(new Chess());
@@ -13,7 +23,7 @@ export default function Home() {
 
   useEffect(() => {
     // connect to socket server
-    const socket = io.connect(process.env.VERCEL_URL || process.env.BASE_URL, {
+    const socket = io.connect(getBaseUrl(), {
       path: "/api/socketio",
     });
 
