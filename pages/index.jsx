@@ -6,6 +6,7 @@ import io from "socket.io-client";
 export default function Home() {
   const chessboardRef = useRef();
   const [game, setGame] = useState(new Chess());
+  const [fen, setFen] = useState('start');
 
   // connected flag
   const [connected, setConnected] = useState(false);
@@ -22,12 +23,15 @@ export default function Home() {
 
     // update chat on new message dispatched
     socket.on("message", (message) => {
+      if (message.fen !== fen) {
+        setFen(message);
+      }
       console.log("SOCKET MESSAGE", message);
     });
 
     // socket disconnect onUnmount if exists
     if (socket) return () => socket.disconnect();
-  }, []);
+  }, [fen]);
 
   function safeGameMutate(modify) {
     setGame((g) => {
@@ -47,11 +51,8 @@ export default function Home() {
     setGame(gameCopy);
 
     // dispatch message to other users
-    const message = {
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q",
-    };
+    const message = gameCopy.fen();
+    // setFen(game.fen());
 
     const resp = await fetch("/api/chat", {
       method: "POST",
@@ -69,7 +70,7 @@ export default function Home() {
       <Chessboard
         id="PlayVsPlay"
         animationDuration={200}
-        position={game.fen()}
+        position={fen}
         onPieceDrop={onDrop}
         customBoardStyle={{
           borderRadius: "4px",
